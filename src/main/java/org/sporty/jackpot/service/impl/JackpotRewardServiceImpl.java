@@ -39,14 +39,6 @@ public class JackpotRewardServiceImpl implements JackpotRewardService {
     public EvaluateBetResult evaluate(String betId) {
         log.debug("Evaluating reward for bet ID `{}`", betId);
 
-        var existingEvaluation = betEvaluationRepository.findByBetId(betId);
-        if (existingEvaluation.isPresent()) {
-            var evaluation = existingEvaluation.get();
-            log.info("Bet ID `{}` already evaluated: winner={}, amount={}",
-                    betId, evaluation.isWinner(), evaluation.getRewardAmount());
-            return new EvaluateBetResult(evaluation.isWinner(), evaluation.getRewardAmount());
-        }
-
         var bet = betRepository.findBetByBetId(betId)
                 .orElseThrow(() -> new BetNotFoundException(betId));
 
@@ -55,6 +47,16 @@ public class JackpotRewardServiceImpl implements JackpotRewardService {
 
         var jackpot = jackpotRepository.findJackpotByJackpotId(bet.getJackpotId())
                 .orElseThrow(() -> new JackpotNotFoundException(bet.getJackpotId()));
+
+        // it must be there due to possible race condition, so we are locking on pessimistic lock,
+        // and only after that unlock further code execution
+        var existingEvaluation = betEvaluationRepository.findByBetId(betId);
+        if (existingEvaluation.isPresent()) {
+            var evaluation = existingEvaluation.get();
+            log.info("Bet ID `{}` already evaluated: winner={}, amount={}",
+                    betId, evaluation.isWinner(), evaluation.getRewardAmount());
+            return new EvaluateBetResult(evaluation.isWinner(), evaluation.getRewardAmount());
+        }
 
         var rewardStrategy = rewardStrategyFactory.get(jackpot.getRewardType());
         if (!rewardStrategy.isWinner(jackpot)) {

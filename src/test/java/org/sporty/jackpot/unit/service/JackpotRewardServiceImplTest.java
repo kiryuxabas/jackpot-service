@@ -58,7 +58,6 @@ class JackpotRewardServiceImplTest {
 
     @Test
     void evaluate_betNotFound_throwsException() {
-        when(betEvaluationRepository.findByBetId("missing")).thenReturn(Optional.empty());
         when(betRepository.findBetByBetId("missing")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> jackpotRewardService.evaluate("missing"))
@@ -68,7 +67,6 @@ class JackpotRewardServiceImplTest {
     @Test
     void evaluate_contributionNotFound_throwsException() {
         var bet = Bet.valueOf("bet-1", "user-1", "mega", new BigDecimal("100.00"));
-        when(betEvaluationRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(betRepository.findBetByBetId("bet-1")).thenReturn(Optional.of(bet));
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
 
@@ -78,15 +76,39 @@ class JackpotRewardServiceImplTest {
 
     @Test
     void evaluate_alreadyEvaluated_returnsStoredResult() {
+        var bet = Bet.valueOf("bet-1", "user-1", "mega", new BigDecimal("100.00"));
+        var contribution = JackpotContribution.valueOf(
+                "bet-1", "user-1", "mega",
+                new BigDecimal("100.00"),
+                new BigDecimal("5.00"),
+                new BigDecimal("1000.00")
+        );
+        var jackpot = Jackpot.valueOf(
+                "mega",
+                new BigDecimal("1000.00"),
+                new BigDecimal("1500.00"),
+                ContributionType.FIXED,
+                RewardType.FIXED,
+                new BigDecimal("0.05"),
+                new BigDecimal("0.10"),
+                new BigDecimal("0.03"),
+                new BigDecimal("10000.00"),
+                new BigDecimal("0.01"),
+                new BigDecimal("100000.00")
+        );
         var evaluation = BetEvaluation.valueOf("bet-1", true, new BigDecimal("1500.00"));
+
+        when(betRepository.findBetByBetId("bet-1")).thenReturn(Optional.of(bet));
+        when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.of(contribution));
+        when(jackpotRepository.findJackpotByJackpotId("mega")).thenReturn(Optional.of(jackpot));
         when(betEvaluationRepository.findByBetId("bet-1")).thenReturn(Optional.of(evaluation));
 
         var result = jackpotRewardService.evaluate("bet-1");
 
         assertThat(result.winner()).isTrue();
         assertThat(result.rewardAmount()).isEqualByComparingTo("1500.00");
-        verify(betRepository, never()).findBetByBetId(any());
         verify(rewardStrategyFactory, never()).get(any());
+        verify(betEvaluationRepository, never()).save(any());
     }
 
     @Test

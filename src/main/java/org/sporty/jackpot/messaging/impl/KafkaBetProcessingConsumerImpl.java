@@ -41,6 +41,15 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
             var jackpot = jackpotRepository.findJackpotByJackpotId(event.jackpotId())
                     .orElseThrow(() -> new JackpotNotFoundException(event.jackpotId()));
 
+            if (jackpotContributionRepository.findByBetId(event.betId()).isPresent()) {
+                log.info("Bet ID `{}` already contributed to jackpot `{}`, skipping contribution",
+                        event.betId(), event.jackpotId());
+                var evaluation = jackpotRewardService.evaluate(event.betId());
+                log.info("Bet ID `{}` idempotent evaluate: winner={}, amount={}",
+                        event.betId(), evaluation.winner(), evaluation.rewardAmount());
+                return;
+            }
+
             var contributionStrategy = contributionStrategyFactory.get(jackpot.getContributionType());
             var contributionValue = contributionStrategy.calculateContribution(event.betAmount(), jackpot);
 
