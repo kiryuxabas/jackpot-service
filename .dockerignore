@@ -1,0 +1,37 @@
+# Maven build output — only the fat JAR is needed in the image
+target/*
+!target/jackpot-*.jar
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+.sts4-cache/
+.factorypath
+.apt_generated
+
+# Maven wrapper jar (downloaded by wrapper script)
+.mvn/wrapper/maven-wrapper.jar
+
+# Local / docs
+*.md
+HELP.md
+
+# Docker
+deploy/local/Dockerfile
+deploy/local/docker-compose.yml
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db

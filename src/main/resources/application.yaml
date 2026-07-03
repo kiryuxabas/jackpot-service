@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: jackpot-service
+  datasource:
+    url: jdbc:h2:mem:jackpotdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: jackpot-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.trusted.packages: "*"
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.example.jackpot: DEBUG
+
+jackpot:
+  defaults:
+    initial-pool: 1000.00
+
+  contribution:
+    fixed-percent: 5.0
+
+  reward:
+    fixed-chance-percent: 1.0
+    max-pool-for-guaranteed-win: 100000.00
