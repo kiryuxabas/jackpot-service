@@ -6,15 +6,15 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "bets")
+@Table(name = "rewards")
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Bet {
+public class JackpotReward {
 
-    public static Bet valueOf(String betId, String userId, String jackpotId, BigDecimal betAmount) {
-        return new Bet(betId, userId, jackpotId, betAmount);
+    public static JackpotReward valueOf(String betId, String userId, String jackpotId, BigDecimal currentPool) {
+        return new JackpotReward(betId, userId, jackpotId, currentPool);
     }
 
     @Id
@@ -31,12 +31,12 @@ public class Bet {
     private String jackpotId;
 
     @Column(nullable = false)
-    private BigDecimal betAmount;
+    private BigDecimal currentPool;
 
-    private Bet(String betId, String userId, String jackpotId, BigDecimal betAmount) {
+    private JackpotReward(String betId, String userId, String jackpotId, BigDecimal currentPool) {
         this.betId = betId;
         this.userId = userId;
         this.jackpotId = jackpotId;
-        this.betAmount = betAmount;
+        this.currentPool = currentPool;
     }
 }

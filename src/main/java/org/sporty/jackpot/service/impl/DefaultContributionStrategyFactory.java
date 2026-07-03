@@ -6,7 +6,6 @@ import org.sporty.jackpot.service.ContributionStrategy;
 import org.sporty.jackpot.service.ContributionStrategyFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 
 @Component

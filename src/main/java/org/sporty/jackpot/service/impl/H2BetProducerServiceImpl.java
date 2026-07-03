@@ -1,5 +1,7 @@
 package org.sporty.jackpot.service.impl;
 
+import org.sporty.jackpot.exception.JackpotNotFoundException;
+import org.sporty.jackpot.repository.JackpotRepository;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BetProducerServiceImpl implements BetProducerService {
+public class H2BetProducerServiceImpl implements BetProducerService {
 
     private final BetRepository betRepository;
     private final OutboxRepository outboxRepository;
     private final JsonMapper jsonMapper;
+    private final JackpotRepository jackpotRepository;
 
     @Override
     @Transactional
@@ -35,8 +38,12 @@ public class BetProducerServiceImpl implements BetProducerService {
                 command.betAmount()
         );
 
+        if (jackpotRepository.findJackpotByJackpotId(bet.getJackpotId()).isEmpty()) {
+            throw new JackpotNotFoundException(bet.getJackpotId());
+        }
+
         try {
-            var savedBet = betRepository.save(bet);
+            var savedBet = betRepository.saveAndFlush(bet);
             var event = new BetCreatedEvent(
                     command.betId(),
                     command.userId(),
@@ -46,6 +53,7 @@ public class BetProducerServiceImpl implements BetProducerService {
             outboxRepository.save(toOutboxEvent(event));
             return savedBet.getBetId();
         } catch (DataIntegrityViolationException _) {
+            log.warn("Duplicate bet ID `{}` detected", command.betId());
             throw new BetAlreadyExistsException(command.betId());
         }
     }

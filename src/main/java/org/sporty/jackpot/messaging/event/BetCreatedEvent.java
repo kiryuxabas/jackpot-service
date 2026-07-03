@@ -1,4 +1,6 @@
 package org.sporty.jackpot.messaging.event;
 
-public record BetCreatedEvent(String betId, String userId, String jackpotId, Integer betAmount) {
+import java.math.BigDecimal;
+
+public record BetCreatedEvent(String betId, String userId, String jackpotId, BigDecimal betAmount) {
 }
