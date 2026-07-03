@@ -17,6 +17,8 @@ This is Jackpot Service including the following features:
 *   has a possibility
 *   made relatively fast :) but with :heart: :)
 
+## Commands
+
 Run service:
 ```sh
 make run
@@ -42,22 +44,47 @@ OpenAPI Doc:
 http://localhost:8080/swagger-ui/index.html
 ```
 
-**Improvement Plan**
+## Pre-Setup
+Linux:
+```sh
+sudo apt update
+sudo apt install git -y
+sudo apt install make -y
+sudo apt install curl -y
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+sudo reboot
+```
+
+Windows:
+```sh
+# Install Git.exe
+https://git-scm.com/install/windows
+# Install https://chocolatey.org
+choco install make
+# Install Docker Compose: https://www.docker.com/products/docker-desktop
+# After that: wsl --update
+```
+
+MacOS:
+```sh
+brew update
+brew install git make
+brew install --cask docker
+open -a Docker
+```
+
+## SLO/SLI
+- SLO/SLI definitions follow Google SRE methodology. See [docs/SLO.md](docs/SLO.md) for user journeys, targets, PromQL queries, and error budget policy.
+- Prometheus metrics: `http://localhost:8080/actuator/prometheus`
+
+
+## Improvement Plan
 
 * Enhance the SDLC pipeline by integrating build, linting, Sonar analysis, automated testing, code coverage reporting, security scanning, and deployment stages.
 * Deploy and maintain Grafana dashboards using Grafonnet.
 * Implement SLO/SLI-based alerting with Alertmanager.
 * Enable Maven concurrent test execution and update the test suite to ensure compatibility and reliability with parallel test runs.
 
-
-## SLO/SLI
-- SLO/SLI definitions follow Google SRE methodology. See [docs/SLO.md](docs/SLO.md) for user journeys, targets, PromQL queries, and error budget policy.
-- Prometheus metrics: `http://localhost:8080/actuator/prometheus`
-
-## Tests & coverage
-
-```sh
-./mvnw test
-```
 
 Report: `target/site/jacoco/index.html`
