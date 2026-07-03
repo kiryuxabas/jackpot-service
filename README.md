@@ -14,7 +14,7 @@ Ladies and gentlemen, this is my second test assignment for a big tech company, 
 
 This is Jackpot Service including the following features:
 *   made with Layered Architecture in mind (controller -> service -> repository)
-*   has a possibility
+*   ships with ops tooling to inspect the system: Swagger UI (API), H2 console (DB), Kafka UI (async bet pipeline)
 *   made relatively fast :) but with :heart: :)
 
 ## Commands
