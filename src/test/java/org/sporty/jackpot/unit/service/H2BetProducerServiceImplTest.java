@@ -54,7 +54,13 @@ class H2BetProducerServiceImplTest {
                 new BigDecimal("1000.00"),
                 new BigDecimal("1000.00"),
                 ContributionType.FIXED,
-                RewardType.FIXED
+                RewardType.FIXED,
+                new BigDecimal("0.05"),
+                new BigDecimal("0.10"),
+                new BigDecimal("0.03"),
+                new BigDecimal("10000.00"),
+                new BigDecimal("0.01"),
+                new BigDecimal("100000.00")
         );
         var savedBet = Bet.valueOf("bet-1", "user-1", "mega", new BigDecimal("100.00"));
 
@@ -88,7 +94,13 @@ class H2BetProducerServiceImplTest {
                 new BigDecimal("1000.00"),
                 new BigDecimal("1000.00"),
                 ContributionType.FIXED,
-                RewardType.FIXED
+                RewardType.FIXED,
+                new BigDecimal("0.05"),
+                new BigDecimal("0.10"),
+                new BigDecimal("0.03"),
+                new BigDecimal("10000.00"),
+                new BigDecimal("0.01"),
+                new BigDecimal("100000.00")
         );
 
         when(jackpotRepository.findJackpotByJackpotId("mega")).thenReturn(Optional.of(jackpot));

@@ -1,8 +1,8 @@
 package org.sporty.jackpot.service;
 
-import java.math.BigDecimal;
+import org.sporty.jackpot.model.Jackpot;
 
 public interface RewardStrategy {
 
-    boolean isWinner(BigDecimal currentPool);
+    boolean isWinner(Jackpot jackpot);
 }

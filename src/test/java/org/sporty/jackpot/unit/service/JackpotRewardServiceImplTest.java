@@ -8,11 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.sporty.jackpot.exception.BetNotFoundException;
 import org.sporty.jackpot.exception.ContributionNotFoundException;
 import org.sporty.jackpot.model.Bet;
+import org.sporty.jackpot.model.BetEvaluation;
 import org.sporty.jackpot.model.ContributionType;
 import org.sporty.jackpot.model.Jackpot;
 import org.sporty.jackpot.model.JackpotContribution;
 import org.sporty.jackpot.model.RewardType;
 import org.sporty.jackpot.observability.JackpotMetrics;
+import org.sporty.jackpot.repository.BetEvaluationRepository;
 import org.sporty.jackpot.repository.BetRepository;
 import org.sporty.jackpot.repository.JackpotContributionRepository;
 import org.sporty.jackpot.repository.JackpotRepository;
@@ -45,6 +47,8 @@ class JackpotRewardServiceImplTest {
     @Mock
     private JackpotRewardRepository jackpotRewardRepository;
     @Mock
+    private BetEvaluationRepository betEvaluationRepository;
+    @Mock
     private JackpotMetrics jackpotMetrics;
     @Mock
     private RewardStrategy rewardStrategy;
@@ -54,6 +58,7 @@ class JackpotRewardServiceImplTest {
 
     @Test
     void evaluate_betNotFound_throwsException() {
+        when(betEvaluationRepository.findByBetId("missing")).thenReturn(Optional.empty());
         when(betRepository.findBetByBetId("missing")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> jackpotRewardService.evaluate("missing"))
@@ -63,11 +68,25 @@ class JackpotRewardServiceImplTest {
     @Test
     void evaluate_contributionNotFound_throwsException() {
         var bet = Bet.valueOf("bet-1", "user-1", "mega", new BigDecimal("100.00"));
+        when(betEvaluationRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(betRepository.findBetByBetId("bet-1")).thenReturn(Optional.of(bet));
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> jackpotRewardService.evaluate("bet-1"))
                 .isInstanceOf(ContributionNotFoundException.class);
+    }
+
+    @Test
+    void evaluate_alreadyEvaluated_returnsStoredResult() {
+        var evaluation = BetEvaluation.valueOf("bet-1", true, new BigDecimal("1500.00"));
+        when(betEvaluationRepository.findByBetId("bet-1")).thenReturn(Optional.of(evaluation));
+
+        var result = jackpotRewardService.evaluate("bet-1");
+
+        assertThat(result.winner()).isTrue();
+        assertThat(result.rewardAmount()).isEqualByComparingTo("1500.00");
+        verify(betRepository, never()).findBetByBetId(any());
+        verify(rewardStrategyFactory, never()).get(any());
     }
 
     @Test
@@ -80,6 +99,7 @@ class JackpotRewardServiceImplTest {
         assertThat(result.rewardAmount()).isEqualByComparingTo(BigDecimal.ZERO);
         verify(jackpotMetrics).recordRewardLoss();
         verify(jackpotRewardRepository, never()).save(any());
+        verify(betEvaluationRepository).save(any(BetEvaluation.class));
     }
 
     @Test
@@ -93,6 +113,7 @@ class JackpotRewardServiceImplTest {
         assertThat(jackpot.getCurrentPool()).isEqualByComparingTo("1000.00");
         verify(jackpotRewardRepository).save(any());
         verify(jackpotRepository).save(jackpot);
+        verify(betEvaluationRepository).save(any(BetEvaluation.class));
         verify(jackpotMetrics).recordRewardWin();
     }
 
@@ -109,14 +130,21 @@ class JackpotRewardServiceImplTest {
                 new BigDecimal("1000.00"),
                 new BigDecimal("1500.00"),
                 ContributionType.FIXED,
-                RewardType.FIXED
+                RewardType.FIXED,
+                new BigDecimal("0.05"),
+                new BigDecimal("0.10"),
+                new BigDecimal("0.03"),
+                new BigDecimal("10000.00"),
+                new BigDecimal("0.01"),
+                new BigDecimal("100000.00")
         );
 
+        when(betEvaluationRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(betRepository.findBetByBetId("bet-1")).thenReturn(Optional.of(bet));
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.of(contribution));
         when(jackpotRepository.findJackpotByJackpotId("mega")).thenReturn(Optional.of(jackpot));
         when(rewardStrategyFactory.get(RewardType.FIXED)).thenReturn(rewardStrategy);
-        when(rewardStrategy.isWinner(jackpot.getCurrentPool())).thenReturn(winner);
+        when(rewardStrategy.isWinner(jackpot)).thenReturn(winner);
 
         return jackpot;
     }

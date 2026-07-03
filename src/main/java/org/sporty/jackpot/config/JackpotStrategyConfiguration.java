@@ -12,6 +12,7 @@ import org.sporty.jackpot.service.impl.VariableRewardStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,7 +21,7 @@ public class JackpotStrategyConfiguration {
 
     @Bean
     ChanceSource chanceSource() {
-        return () -> ThreadLocalRandom.current().nextDouble();
+        return () -> BigDecimal.valueOf(ThreadLocalRandom.current().nextDouble());
     }
 
     @Bean

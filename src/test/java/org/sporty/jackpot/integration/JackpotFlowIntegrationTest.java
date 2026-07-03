@@ -8,6 +8,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.sporty.jackpot.repository.BetEvaluationRepository;
 import org.sporty.jackpot.repository.BetRepository;
 import org.sporty.jackpot.repository.JackpotContributionRepository;
 import org.sporty.jackpot.repository.JackpotRepository;
@@ -28,6 +29,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,6 +61,9 @@ class JackpotFlowIntegrationTest {
 
     @Autowired
     private JackpotRepository jackpotRepository;
+
+    @Autowired
+    private BetEvaluationRepository betEvaluationRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -121,11 +126,18 @@ class JackpotFlowIntegrationTest {
     }
 
     @Test
+    void contributionPipeline_autoEvaluatesBet() throws Exception {
+        var betId = "bet-" + UUID.randomUUID();
+        createBet(betId, "mega", 100);
+
+        await().atMost(java.time.Duration.ofSeconds(15)).untilAsserted(() ->
+                assertThat(betEvaluationRepository.findByBetId(betId)).isPresent()
+        );
+    }
+
+    @Test
     void evaluate_win_resetsJackpotPool() throws Exception {
         var betId = "bet-" + UUID.randomUUID();
-        createBet(betId, "super", 100);
-
-        awaitContribution(betId);
 
         transactionTemplate.executeWithoutResult(status -> {
             var jackpot = jackpotRepository.findJackpotByJackpotId("super").orElseThrow();
@@ -133,13 +145,32 @@ class JackpotFlowIntegrationTest {
             jackpotRepository.saveAndFlush(jackpot);
         });
 
+        createBet(betId, "super", 100);
+        awaitContribution(betId);
+
+        assertThat(findJackpotPool("super")).isEqualByComparingTo("500.00");
+
         mockMvc.perform(post("/api/jackpot/bet/{betId}", betId))
                 .andExpect(status().is(equalTo(200)))
                 .andExpect(jsonPath("$.winner", is(true)))
                 .andExpect(jsonPath("$.rewardAmount", notNullValue()));
+    }
 
-        var resetJackpot = findJackpotPool("super");
-        assertThat(resetJackpot).isEqualByComparingTo("500.00");
+    @Test
+    void evaluate_twice_returnsSameResult() throws Exception {
+        var betId = "bet-" + UUID.randomUUID();
+        createBet(betId, "mega", 100);
+        awaitContribution(betId);
+
+        var firstResponse = mockMvc.perform(post("/api/jackpot/bet/{betId}", betId))
+                .andExpect(status().is(equalTo(200)))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        mockMvc.perform(post("/api/jackpot/bet/{betId}", betId))
+                .andExpect(status().is(equalTo(200)))
+                .andExpect(content().json(firstResponse));
     }
 
     @Test

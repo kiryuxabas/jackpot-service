@@ -12,6 +12,7 @@ import org.sporty.jackpot.repository.BetRepository;
 import org.sporty.jackpot.repository.JackpotContributionRepository;
 import org.sporty.jackpot.repository.JackpotRepository;
 import org.sporty.jackpot.service.ContributionStrategyFactory;
+import org.sporty.jackpot.service.JackpotRewardService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
     private final JackpotRepository jackpotRepository;
     private final JackpotContributionRepository jackpotContributionRepository;
     private final ContributionStrategyFactory contributionStrategyFactory;
+    private final JackpotRewardService jackpotRewardService;
     private final JackpotMetrics jackpotMetrics;
 
     @Transactional
@@ -40,7 +42,7 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
                     .orElseThrow(() -> new JackpotNotFoundException(event.jackpotId()));
 
             var contributionStrategy = contributionStrategyFactory.get(jackpot.getContributionType());
-            var contributionValue = contributionStrategy.calculateContribution(event.betAmount(), jackpot.getCurrentPool());
+            var contributionValue = contributionStrategy.calculateContribution(event.betAmount(), jackpot);
 
             jackpot.addContribution(contributionValue);
 
@@ -63,6 +65,10 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
 
             log.info("Bet ID `{}` contributed `{}` to jackpot `{}`. Current pool `{}`",
                     event.betId(), contributionValue, jackpot.getJackpotId(), jackpot.getCurrentPool());
+
+            var evaluation = jackpotRewardService.evaluate(event.betId());
+            log.info("Bet ID `{}` auto-evaluated after contribution: winner={}, amount={}",
+                    event.betId(), evaluation.winner(), evaluation.rewardAmount());
         } catch (Exception e) {
             jackpotMetrics.recordContributionError();
             log.error("Failed to process contribution for bet ID `{}`, jackpot `{}`",
