@@ -1,74 +1,30 @@
+![CI/CD](https://img.shields.io/github/actions/workflow/status/kiryuxabas/jackpot-service/ci.yml?branch=main)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.7-brightgreen)
+![Maven](https://img.shields.io/badge/Maven-3.9.16-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Jackpot Ready](https://img.shields.io/badge/Jackpot-Ready-gold)
+
+<img align="right" width="25%" src="./images/big-duke.png">
+
 # Jackpot Service
+Ladies and gentlemen, this is my second test assignment for a big tech company, and I have only 50% confidence that I understand what is being discussed. The remaining 50% is just confidence that I can convince you that everything is going according to plan :) I hope that at least the second half is correct! :)
 
-Backend service for jackpot pool contributions and rewards (home assignment).
+This is Jackpot Service including the following features:
+*   made with Layered Architecture in mind (controller -> service -> repository)
+*   has a possibility
+*   made relatively fast :) but with :heart: :)
 
-## Prerequisites
-
-- Docker and Docker Compose
-- Make (optional)
-- Java 21 (only for local build without Docker)
-
-## Run
-
+Run service:
 ```sh
 make run
 ```
 
-Stop:
-
+Swagger Doc:
 ```sh
-make stop
+http://localhost:8080/swagger-ui/index.html
 ```
 
-The stack starts Kafka, Kafka UI, and the jackpot service on port `8080`.
-
-## API
-
-Swagger UI: http://localhost:8080/swagger-ui/index.html
-
-### Create a bet (publishes to Kafka topic `jackpot-bets`)
-
-```sh
-curl -X POST http://localhost:8080/api/jackpot/bet \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "betId": "bet-1",
-    "userId": "user-42",
-    "jackpotId": "mega",
-    "betAmount": 100
-  }'
-```
-
-Available jackpot IDs (see `src/main/resources/data.sql`): `mega`, `super`, `medium`, `mini`.
-
-### Evaluate jackpot reward
-
-Wait until the Kafka consumer processes the bet (outbox poll interval ~1s), then:
-
-```sh
-curl -X POST http://localhost:8080/api/jackpot/bet/bet-1
-```
-
-Response example:
-
-```json
-{"winner": false, "rewardAmount": 0}
-```
-
-If called before contribution is processed, returns `404 Contribution not found`.
-
-## H2 Console
-
-- URL: http://localhost:8080/h2-console
-- JDBC URL: `jdbc:h2:mem:jackpotdb`
-- Username: `sa`
-- Password: *(empty)*
-
-## Kafka UI
-
-http://localhost:8090
-
-## GitHub
-
-<!-- Replace with your public repository URL -->
-https://github.com/YOUR_USERNAME/jackpot-service
+## SLO/SLI
+- SLO/SLI definitions follow Google SRE methodology. See [docs/SLO.md](docs/SLO.md) for user journeys, targets, PromQL queries, and error budget policy.
+- Prometheus metrics: `http://localhost:8080/actuator/prometheus`
