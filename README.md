@@ -5,6 +5,7 @@
 ![Maven](https://img.shields.io/badge/Maven-3.9.16-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Jackpot Ready](https://img.shields.io/badge/Jackpot-Ready-gold)
+![Simply the best ;)](https://img.shields.io/badge/simply-the%20best%20%3B%29-orange)
 
 <img align="right" width="25%" src="./images/big-duke.png">
 
@@ -21,21 +22,33 @@ Run service:
 make run
 ```
 
+Run tests:
+```sh
+make test
+```
+
+Run linter:
+```sh
+make lint
+```
+
 Build image only:
 ```sh
 make build
 ```
 
-Swagger Doc:
+OpenAPI Doc:
 ```sh
 http://localhost:8080/swagger-ui/index.html
 ```
 
-Plan for improvements:
-- SDLC: build, lint, Sonar, test, coverage, security scan, deploy
-- Deploy Grafana dashboard (grafonnet)
-- Alerts on SLO/SLI (AlertManager)
-- Concurrent Maven test runner
+**Improvement Plan**
+
+* Enhance the SDLC pipeline by integrating build, linting, Sonar analysis, automated testing, code coverage reporting, security scanning, and deployment stages.
+* Deploy and maintain Grafana dashboards using Grafonnet.
+* Implement SLO/SLI-based alerting with Alertmanager.
+* Enable Maven concurrent test execution and update the test suite to ensure compatibility and reliability with parallel test runs.
+
 
 ## SLO/SLI
 - SLO/SLI definitions follow Google SRE methodology. See [docs/SLO.md](docs/SLO.md) for user journeys, targets, PromQL queries, and error budget policy.
