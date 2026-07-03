@@ -2,6 +2,7 @@ package org.sporty.jackpot.config;
 
 import org.sporty.jackpot.model.ContributionType;
 import org.sporty.jackpot.model.RewardType;
+import org.sporty.jackpot.service.ChanceSource;
 import org.sporty.jackpot.service.ContributionStrategy;
 import org.sporty.jackpot.service.RewardStrategy;
 import org.sporty.jackpot.service.impl.FixedContributionStrategy;
@@ -12,9 +13,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Configuration
 public class JackpotStrategyConfiguration {
+
+    @Bean
+    ChanceSource chanceSource() {
+        return () -> ThreadLocalRandom.current().nextDouble();
+    }
 
     @Bean
     Map<RewardType, RewardStrategy> rewardStrategies(

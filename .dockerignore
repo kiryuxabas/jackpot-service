@@ -1,6 +1,5 @@
-# Maven build output — only the fat JAR is needed in the image
-target/*
-!target/jackpot-*.jar
+# Maven build output is produced inside the container
+target/
 
 # Version control
 .git/
@@ -20,15 +19,11 @@ target/*
 .factorypath
 .apt_generated
 
-# Maven wrapper jar (downloaded by wrapper script)
-.mvn/wrapper/maven-wrapper.jar
-
 # Local / docs
 *.md
 HELP.md
 
 # Docker
-deploy/local/Dockerfile
 deploy/local/docker-compose.yml
 .dockerignore
 

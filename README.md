@@ -1,4 +1,5 @@
 ![CI/CD](https://img.shields.io/github/actions/workflow/status/kiryuxabas/jackpot-service/ci.yml?branch=main)
+![Coverage](https://img.shields.io/badge/line%20coverage-91%25-brightgreen)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.7-brightgreen)
 ![Maven](https://img.shields.io/badge/Maven-3.9.16-blue)
@@ -20,11 +21,30 @@ Run service:
 make run
 ```
 
+Build image only:
+```sh
+make build
+```
+
 Swagger Doc:
 ```sh
 http://localhost:8080/swagger-ui/index.html
 ```
 
+Plan for improvements:
+- SDLC: build, lint, Sonar, test, coverage, security scan, deploy
+- Deploy Grafana dashboard (grafonnet)
+- Alerts on SLO/SLI (AlertManager)
+- Concurrent Maven test runner
+
 ## SLO/SLI
 - SLO/SLI definitions follow Google SRE methodology. See [docs/SLO.md](docs/SLO.md) for user journeys, targets, PromQL queries, and error budget policy.
 - Prometheus metrics: `http://localhost:8080/actuator/prometheus`
+
+## Tests & coverage
+
+```sh
+./mvnw test
+```
+
+Report: `target/site/jacoco/index.html`

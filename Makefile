@@ -1,9 +1,9 @@
 .PHONY: build run stop
 
 build:
-	./mvnw -s settings.xml clean package -DskipTests=true
+	docker build -f deploy/local/Dockerfile -t jackpot-service:local .
 
-run: build
+run:
 	docker compose --env-file "$(CURDIR)/deploy/local/.env" -f "$(CURDIR)/deploy/local/docker-compose.yml" up --build --remove-orphans
 
 stop:
