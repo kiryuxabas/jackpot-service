@@ -43,7 +43,20 @@ spring:
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
+  metrics:
+    tags:
+      application: jackpot-service
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        jackpot.contribution.processing.duration: true
+
 logging:
   level:
     root: INFO
-    com.example.jackpot: DEBUG
+    org.sporty.jackpot: DEBUG

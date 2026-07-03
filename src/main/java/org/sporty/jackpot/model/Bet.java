@@ -4,12 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "bets")
 @Getter
-@Setter
-@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Bet {
 
@@ -33,10 +32,14 @@ public class Bet {
     @Column(nullable = false)
     private BigDecimal betAmount;
 
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
     private Bet(String betId, String userId, String jackpotId, BigDecimal betAmount) {
         this.betId = betId;
         this.userId = userId;
         this.jackpotId = jackpotId;
         this.betAmount = betAmount;
+        this.createdAt = Instant.now();
     }
 }

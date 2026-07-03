@@ -7,6 +7,7 @@ import org.sporty.jackpot.exception.BetNotFoundException;
 import org.sporty.jackpot.exception.ContributionNotFoundException;
 import org.sporty.jackpot.exception.JackpotNotFoundException;
 import org.sporty.jackpot.model.JackpotReward;
+import org.sporty.jackpot.observability.JackpotMetrics;
 import org.sporty.jackpot.repository.BetRepository;
 import org.sporty.jackpot.repository.JackpotContributionRepository;
 import org.sporty.jackpot.repository.JackpotRepository;
@@ -28,10 +29,13 @@ public class JackpotRewardServiceImpl implements JackpotRewardService {
     private final JackpotContributionRepository jackpotContributionRepository;
     private final RewardStrategyFactory rewardStrategyFactory;
     private final JackpotRewardRepository jackpotRewardRepository;
+    private final JackpotMetrics jackpotMetrics;
 
     @Override
     @Transactional
     public EvaluateBetResult evaluate(String betId) {
+        log.debug("Evaluating reward for bet ID `{}`", betId);
+
         var bet = betRepository.findBetByBetId(betId)
                 .orElseThrow(() -> new BetNotFoundException(betId));
 
@@ -43,6 +47,8 @@ public class JackpotRewardServiceImpl implements JackpotRewardService {
 
         var rewardStrategy = rewardStrategyFactory.get(jackpot.getRewardType());
         if (!rewardStrategy.isWinner(jackpot.getCurrentPool())) {
+            log.info("Bet ID `{}` did not win jackpot `{}`", betId, jackpot.getJackpotId());
+            jackpotMetrics.recordRewardLoss();
             return new EvaluateBetResult(false, BigDecimal.ZERO);
         }
 
@@ -55,6 +61,9 @@ public class JackpotRewardServiceImpl implements JackpotRewardService {
         jackpotRewardRepository.save(jackpotReward);
         var rewardAmount = jackpot.payout();
         jackpotRepository.save(jackpot);
+        jackpotMetrics.recordRewardWin();
+        log.info("Bet ID `{}` won jackpot `{}` with reward amount `{}`",
+                betId, jackpot.getJackpotId(), rewardAmount);
         return new EvaluateBetResult(true, rewardAmount);
     }
 }

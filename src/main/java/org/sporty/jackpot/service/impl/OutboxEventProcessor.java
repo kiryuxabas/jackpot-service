@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.sporty.jackpot.messaging.event.BetCreatedEvent;
 import org.sporty.jackpot.model.OutboxEvent;
+import org.sporty.jackpot.observability.JackpotMetrics;
 import org.sporty.jackpot.repository.OutboxRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,6 +21,7 @@ public class OutboxEventProcessor {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final JsonMapper jsonMapper;
+    private final JackpotMetrics jackpotMetrics;
 
     @Value("${jackpot.kafka.jackpot-bets-topic}")
     private String jackpotBetsTopic;
@@ -30,6 +32,7 @@ public class OutboxEventProcessor {
         kafkaTemplate.send(jackpotBetsTopic, event.getAggregateId(), betCreatedEvent).get();
         event.markPublished();
         outboxRepository.save(event);
+        jackpotMetrics.recordOutboxPublishSuccess();
         log.info("Published outbox event id={} to topic={}", event.getId(), jackpotBetsTopic);
     }
 }

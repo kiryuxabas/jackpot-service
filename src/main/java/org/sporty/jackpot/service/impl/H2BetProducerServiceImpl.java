@@ -1,6 +1,7 @@
 package org.sporty.jackpot.service.impl;
 
 import org.sporty.jackpot.exception.JackpotNotFoundException;
+import org.sporty.jackpot.observability.JackpotMetrics;
 import org.sporty.jackpot.repository.JackpotRepository;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -27,6 +28,7 @@ public class H2BetProducerServiceImpl implements BetProducerService {
     private final OutboxRepository outboxRepository;
     private final JsonMapper jsonMapper;
     private final JackpotRepository jackpotRepository;
+    private final JackpotMetrics jackpotMetrics;
 
     @Override
     @Transactional
@@ -51,9 +53,13 @@ public class H2BetProducerServiceImpl implements BetProducerService {
                     command.betAmount()
             );
             outboxRepository.save(toOutboxEvent(event));
+            jackpotMetrics.recordBetAccepted();
+            log.info("Bet ID `{}` saved for jackpot `{}` with amount `{}`, outbox event queued",
+                    savedBet.getBetId(), savedBet.getJackpotId(), savedBet.getBetAmount());
             return savedBet.getBetId();
         } catch (DataIntegrityViolationException ex) {
             log.warn("Duplicate bet ID `{}` detected", command.betId());
+            jackpotMetrics.recordDuplicateRejected();
             throw new BetAlreadyExistsException(command.betId());
         }
     }
@@ -63,6 +69,7 @@ public class H2BetProducerServiceImpl implements BetProducerService {
             var payload = jsonMapper.writeValueAsString(event);
             return OutboxEvent.create(event.betId(), BetCreatedEvent.class.getSimpleName(), payload);
         } catch (JacksonException e) {
+            log.error("Failed to serialize BetCreatedEvent for bet ID `{}`", event.betId(), e);
             throw new IllegalStateException("Failed to serialize BetCreatedEvent", e);
         }
     }
