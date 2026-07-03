@@ -21,15 +21,15 @@ public class OutboxEventProcessor {
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final JsonMapper jsonMapper;
 
-    @Value("${jackpot.kafka.bet-created-topic}")
-    private String betCreatedTopic;
+    @Value("${jackpot.kafka.jackpot-bets-topic}")
+    private String jackpotBetsTopic;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void publish(OutboxEvent event) throws Exception {
         var betCreatedEvent = jsonMapper.readValue(event.getPayload(), BetCreatedEvent.class);
-        kafkaTemplate.send(betCreatedTopic, event.getAggregateId(), betCreatedEvent).get();
+        kafkaTemplate.send(jackpotBetsTopic, event.getAggregateId(), betCreatedEvent).get();
         event.markPublished();
         outboxRepository.save(event);
-        log.info("Published outbox event id={} to topic={}", event.getId(), betCreatedTopic);
+        log.info("Published outbox event id={} to topic={}", event.getId(), jackpotBetsTopic);
     }
 }

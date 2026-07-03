@@ -4,17 +4,16 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "rewards")
 @Getter
-@Setter
-@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class JackpotReward {
 
-    public static JackpotReward valueOf(String betId, String userId, String jackpotId, BigDecimal currentPool) {
-        return new JackpotReward(betId, userId, jackpotId, currentPool);
+    public static JackpotReward valueOf(String betId, String userId, String jackpotId, BigDecimal rewardAmount) {
+        return new JackpotReward(betId, userId, jackpotId, rewardAmount);
     }
 
     @Id
@@ -30,13 +29,17 @@ public class JackpotReward {
     @Column(nullable = false)
     private String jackpotId;
 
-    @Column(nullable = false)
-    private BigDecimal currentPool;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal rewardAmount;
 
-    private JackpotReward(String betId, String userId, String jackpotId, BigDecimal currentPool) {
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    private JackpotReward(String betId, String userId, String jackpotId, BigDecimal rewardAmount) {
         this.betId = betId;
         this.userId = userId;
         this.jackpotId = jackpotId;
-        this.currentPool = currentPool;
+        this.rewardAmount = rewardAmount;
+        this.createdAt = Instant.now();
     }
 }

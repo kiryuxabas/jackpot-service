@@ -18,6 +18,22 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(BetNotFoundException.class)
+    public ProblemDetail handle(BetNotFoundException e) {
+        var problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setTitle("Bet not found");
+        problem.setDetail(e.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(ContributionNotFoundException.class)
+    public ProblemDetail handle(ContributionNotFoundException e) {
+        var problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setTitle("Contribution not found");
+        problem.setDetail(e.getMessage());
+        return problem;
+    }
+
     @ExceptionHandler(JackpotNotFoundException.class)
     public ProblemDetail handle(JackpotNotFoundException e) {
         var problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);

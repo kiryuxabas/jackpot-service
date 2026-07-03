@@ -52,7 +52,7 @@ public class H2BetProducerServiceImpl implements BetProducerService {
             );
             outboxRepository.save(toOutboxEvent(event));
             return savedBet.getBetId();
-        } catch (DataIntegrityViolationException _) {
+        } catch (DataIntegrityViolationException ex) {
             log.warn("Duplicate bet ID `{}` detected", command.betId());
             throw new BetAlreadyExistsException(command.betId());
         }

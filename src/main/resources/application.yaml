@@ -1,6 +1,6 @@
 jackpot:
   kafka:
-    bet-created-topic: bet-created
+    jackpot-bets-topic: jackpot-bets
   outbox:
     poll-interval-ms: 1000
 

@@ -24,7 +24,7 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
     private final ContributionStrategyFactory contributionStrategyFactory;
 
     @Transactional
-    @KafkaListener(topics = "${jackpot.kafka.bet-created-topic}")
+    @KafkaListener(topics = "${jackpot.kafka.jackpot-bets-topic}")
     public void onBet(@Payload BetCreatedEvent event) {
         log.debug("Received bet ID `{}` for jackpot `{}`", event.betId(), event.jackpotId());
 
@@ -33,6 +33,8 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
 
         var contributionStrategy = contributionStrategyFactory.get(jackpot.getContributionType());
         var contributionValue = contributionStrategy.calculateContribution(event.betAmount(), jackpot.getCurrentPool());
+
+        jackpot.addContribution(contributionValue);
 
         var jackpotContribution = JackpotContribution.valueOf(
                 event.betId(),
@@ -43,8 +45,6 @@ public class KafkaBetProcessingConsumerImpl implements BetProcessingConsumer {
                 jackpot.getCurrentPool()
         );
         jackpotContributionRepository.saveAndFlush(jackpotContribution);
-
-        jackpot.addContribution(contributionValue);
         jackpotRepository.save(jackpot);
 
         log.info("Bet ID `{}` contributed `{}` to jackpot `{}`. Current pool `{}`",
