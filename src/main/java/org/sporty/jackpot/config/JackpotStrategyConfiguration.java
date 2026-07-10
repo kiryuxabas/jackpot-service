@@ -31,7 +31,8 @@ public class JackpotStrategyConfiguration {
     ) {
         return Map.of(
                 RewardType.FIXED, fixedRewardStrategy,
-                RewardType.VARIABLE, variableRewardStrategy
+                RewardType.VARIABLE, variableRewardStrategy,
+                RewardType
         );
     }
 

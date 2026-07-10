@@ -17,7 +17,8 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
     List<OutboxEvent> findUnpublished();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))  // select for update skip locked
     @Query("SELECT e FROM OutboxEvent e WHERE e.publishedAt IS NULL ORDER BY e.createdAt ASC")
     List<OutboxEvent> claimUnpublished(Pageable pageable);
+    // jdbc: select ... for update skip locked
 }
